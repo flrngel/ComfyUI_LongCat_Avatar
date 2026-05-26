@@ -14,9 +14,6 @@ git clone https://github.com/smthemex/ComfyUI_LongCat_Avatar
 ```
 2.requirements  
 ----
-* need [Block-Sparse-Attention](https://github.com/mit-han-lab/Block-Sparse-Attention) you need find a wheel
-* 注意需要Block-Sparse-Attention，你需要找个轮子，或者花点时间自己编译 使用[官方](https://github.com/mit-han-lab/Block-Sparse-Attention) 或者我的[ smthemex/Block-Sparse-Attention](https://github.com/smthemex/Block-Sparse-Attention)
-* Block-Sparse-Attention 轮子 [Block-Sparse-Attention](https://huggingface.co/smthem/LongCat-Video-Avatar-1.5-merge)  
 ```
 pip install -r requirements.txt
 ```
