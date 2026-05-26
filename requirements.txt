@@ -23,4 +23,4 @@ diffusers
 flash-attn
 imageio
 imageio-ffmpeg
-block_sparse_attn
+
