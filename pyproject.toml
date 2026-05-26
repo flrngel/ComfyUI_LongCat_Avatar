@@ -1,0 +1,16 @@
+[project]
+name = "longcat_avatar"
+description = "LongCat_Avatar,an upgraded open-source framework for audio-driven human video generation."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["scikit-learn", "scikit-image", "scipy", "soundfile", "soxr", "librosa", "libsndfile1", "sympy", "audio-separator", "pyloudnorm", "nvidia-ml-py", "tzdata", "onnx", "onnxruntime", "tritonserverclient", "openai", "numpy", "cffi", "chardet", "transformers", "torch", "diffusers", "flash-attn", "imageio", "imageio-ffmpeg"]
+
+[project.urls]
+Repository = "https://github.com/smthemex/ComfyUI_LongCat_Avatar"
+#  Used by Comfy Registry https://registry.comfy.org
+
+[tool.comfy]
+PublisherId = "smthemex"
+DisplayName = "ComfyUI_LongCat_Avatar"
+Icon = ""
+includes = []
