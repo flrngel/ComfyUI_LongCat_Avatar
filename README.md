@@ -3,7 +3,8 @@
 
 Update
 ----
-* add node ，部署节点，目前单人和双人测试通过，部分参数未严谨测试，请自行测试，有bug可以提issues或反馈给我的B站或小红书smthem账号
+* add node   
+* 部署节点，目前单人和双人测试通过，部分参数未严谨测试，请自行测试，有bug可以提issues或反馈给我的B站或小红书smthem账号
 
 1.Installation  
 ----
@@ -19,9 +20,9 @@ pip install -r requirements.txt
 3.checkpoints 
 ----
   
-[dit-int8](https://huggingface.co/smthem/LongCat-Video-Avatar-1.5-merge)  
-[text_encoders](https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/tree/main/split_files/text_encoders)  
-[vae/vocal_separator/whisper-large-v3/lora](https://huggingface.co/meituan-longcat/LongCat-Video-Avatar-1.5/tree/main)
+links: [dit-int8](https://huggingface.co/smthem/LongCat-Video-Avatar-1.5-merge)  
+links: [text_encoders](https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/tree/main/split_files/text_encoders)  
+links: [vae/vocal_separator/whisper-large-v3/lora](https://huggingface.co/meituan-longcat/LongCat-Video-Avatar-1.5/tree/main)
 
 ```
 ├── ComfyUI/models/diffusion_models/
@@ -42,7 +43,7 @@ pip install -r requirements.txt
 4 Example
 ----
 
-![](https://github.com/smthemex/ComfyUI_Sapiens/tree/main/example_workflows/example.png)
+![](https://github.com/smthemex/ComfyUI_LongCat_Avatar/blob/main/example_workflows/example.png)
 
 5 Citation
 ----
