@@ -4,7 +4,7 @@ scipy
 soundfile
 soxr
 librosa
-libsndfile1
+#libsndfile1
 sympy
 audio-separator
 pyloudnorm
@@ -12,7 +12,7 @@ nvidia-ml-py
 tzdata
 onnx
 onnxruntime
-tritonserverclient
+#tritonserverclient
 openai
 numpy
 cffi
