@@ -1,22 +1,89 @@
 {
   "id": "24406e80-db5d-4681-95f1-673239e92a0d",
   "revision": 0,
-  "last_node_id": 26,
-  "last_link_id": 32,
+  "last_node_id": 36,
+  "last_link_id": 49,
   "nodes": [
+    {
+      "id": 1,
+      "type": "LongCat_Video_SM_Model",
+      "pos": [
+        650.396473073871,
+        2991.1738612636673
+      ],
+      "size": [
+        338.5,
+        210.078125
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LongCat_Video_SM_Model"
+      },
+      "widgets_values": [
+        "LongCat-Video-Avatar-1.5-int8.safetensors",
+        "none",
+        "LongCat-Video-Avatar-vae.safetensors",
+        "longcat-avatar-dmd_lora.safetensors"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "CLIPLoader",
+      "pos": [
+        271.60996506664526,
+        3019.074909649015
+      ],
+      "size": [
+        364.5,
+        168.140625
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "wan",
+        "default"
+      ]
+    },
     {
       "id": 7,
       "type": "LoadImage",
       "pos": [
-        1007.2523160561336,
-        2976.8889023205434
+        999.5083234413873,
+        3006.89688385741
       ],
       "size": [
         270,
-        339.453125
+        371.421875
       ],
       "flags": {},
-      "order": 0,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -37,23 +104,300 @@
         "Node name for S&R": "LoadImage"
       },
       "widgets_values": [
-        "man.png",
+        "微信图片_20260528102159_4662_2556.png",
         "image"
       ]
+    },
+    {
+      "id": 27,
+      "type": "AudioEncoderLoader",
+      "pos": [
+        -510.8617652405235,
+        3034.4591464807313
+      ],
+      "size": [
+        270,
+        58
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO_ENCODER",
+          "type": "AUDIO_ENCODER",
+          "links": [
+            45
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AudioEncoderLoader"
+      },
+      "widgets_values": [
+        "whisper-large-v3.safetensors"
+      ]
+    },
+    {
+      "id": 36,
+      "type": "LongCat_Video_SM_Vocal",
+      "pos": [
+        -848.8587082062876,
+        3080.4247507745868
+      ],
+      "size": [
+        209.2125,
+        46
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 2,
+      "inputs": [
+        {
+          "name": "audio_encoder",
+          "type": "AUDIO_ENCODER",
+          "link": 47
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 48
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            49
+          ]
+        },
+        {
+          "name": "audio_path",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LongCat_Video_SM_Vocal"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 35,
+      "type": "LongCat_Video_SM_VocalModel",
+      "pos": [
+        -1196.978482711904,
+        2999.740934060109
+      ],
+      "size": [
+        310.378515625,
+        58
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 2,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO_ENCODER",
+          "type": "AUDIO_ENCODER",
+          "links": [
+            47
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LongCat_Video_SM_VocalModel"
+      },
+      "widgets_values": [
+        "Kim_Vocal_2.onnx"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "LoadAudio",
+      "pos": [
+        -1157.7806655520128,
+        3142.772627510884
+      ],
+      "size": [
+        270,
+        151.453125
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 2,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            48
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        "sing_man.WAV",
+        null,
+        null
+      ]
+    },
+    {
+      "id": 16,
+      "type": "SaveAudio",
+      "pos": [
+        -830.5966729372642,
+        3240.540564736228
+      ],
+      "size": [
+        270,
+        112
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 2,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 49
+        }
+      ],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "audio/ComfyUI"
+      ]
+    },
+    {
+      "id": 24,
+      "type": "Note",
+      "pos": [
+        -325.3150444390377,
+        2807.7094547168954
+      ],
+      "size": [
+        497.1231074057333,
+        94.45838764285236
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "note",
+      "properties": {},
+      "widgets_values": [
+        "1、连入左侧人物或者动物的声音，开启双人模式\n2、audio type  是声音合成的模式，还未测试\n3 、视频时长由num segments控制，为（93/25）时长的倍数\n4、p box为角色的坐标值，为[100, 80, 800, 640], [1001, 80, 800, 640] ，从左到右，如果有3组，第三组为需要忽略的背景人物（可以理解为mask）"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 25,
+      "type": "Note",
+      "pos": [
+        -1123.0124782852806,
+        2815.3497691963007
+      ],
+      "size": [
+        559.5,
+        91.453125
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "note",
+      "properties": {},
+      "widgets_values": [
+        "如果没有背景音乐，可以跳过分离人声这步\n如果没有，会自动下载"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 5,
+      "type": "LongCat_Video_SM_Encode",
+      "pos": [
+        241.78386490317064,
+        3271.1579161675004
+      ],
+      "size": [
+        412.0967895507813,
+        286.0468688964843
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "te_cond",
+          "type": "CONDITIONING",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LongCat_Video_SM_Encode"
+      },
+      "widgets_values": [
+        "Static camera, In a professional recording studio, two people stand facing each other, both wearing large headphones. They are speaking clearly into a large condenser microphone suspended between them. They looked at each other affectionately and occasionally shook their heads according to the rhythm. The soundproofed walls and visible recording equipment create an atmosphere focused on capturing high-quality audio as they interact and communicate.",
+        "Close-up, Bright tones, overexposed, static, blurred details, subtitles, style, works, paintings, images, static, overall gray, worst quality, low quality, JPEG compression residue, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, misshapen limbs, fused fingers, still picture, messy background, three legs, many people in the background, walking backwards."
+      ]
+    },
+    {
+      "id": 26,
+      "type": "Note",
+      "pos": [
+        241.51565003191646,
+        2801.2610872555492
+      ],
+      "size": [
+        515.1837060069965,
+        89.03824093286312
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "note",
+      "properties": {},
+      "widgets_values": [
+        "1 、gguf的DMD lora目前未支持（反正我也没上传模型）\n2 、stage1只是单角色时有效\n3 、block num 小于36G的显存请设置block num 大于0，看显存的使用量逐步增大\n"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
     },
     {
       "id": 3,
       "type": "CreateVideo",
       "pos": [
-        684.4278525325874,
-        3733.0244437932192
+        339.14223554650306,
+        3606.506829391974
       ],
       "size": [
         270,
         103.453125
       ],
       "flags": {},
-      "order": 22,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -85,155 +429,47 @@
       ]
     },
     {
-      "id": 9,
-      "type": "LoadAudio",
+      "id": 4,
+      "type": "SaveVideo",
       "pos": [
-        -1143.3925469763471,
-        2974.290181342222
+        993.8159507361488,
+        3383.12032232679
       ],
       "size": [
-        270,
-        151.453125
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            9
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadAudio"
-      },
-      "widgets_values": [
-        "sing_woman.WAV",
-        null,
-        null
-      ]
-    },
-    {
-      "id": 10,
-      "type": "LongCat_Video_SM_Vocal",
-      "pos": [
-        -1147.5284848730753,
-        3191.2103243475954
-      ],
-      "size": [
-        225,
-        119.453125
-      ],
-      "flags": {},
-      "order": 13,
-      "mode": 2,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 9
-        },
-        {
-          "name": "left_audio",
-          "shape": 7,
-          "type": "AUDIO",
-          "link": 17
-        }
-      ],
-      "outputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "links": [
-            10
-          ]
-        },
-        {
-          "name": "left_audio",
-          "type": "AUDIO",
-          "links": [
-            18
-          ]
-        },
-        {
-          "name": "audio_path",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LongCat_Video_SM_Vocal"
-      },
-      "widgets_values": []
-    },
-    {
-      "id": 11,
-      "type": "SaveAudio",
-      "pos": [
-        -873.9326912494167,
-        3166.8458185553573
-      ],
-      "size": [
-        270,
-        112
+        314.7684812377929,
+        337.72981218566883
       ],
       "flags": {},
       "order": 18,
-      "mode": 2,
+      "mode": 0,
       "inputs": [
         {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 10
+          "name": "video",
+          "type": "VIDEO",
+          "link": 3
         }
       ],
       "outputs": [],
       "properties": {},
       "widgets_values": [
-        "audio/ComfyUI"
+        "video/ComfyUI",
+        "auto",
+        "auto"
       ]
-    },
-    {
-      "id": 17,
-      "type": "Note",
-      "pos": [
-        -505.54372981822735,
-        2652.10346618984
-      ],
-      "size": [
-        559.515625,
-        202.671875
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "single",
-      "properties": {},
-      "widgets_values": [
-        "A western man stands on stage under dramatic lighting, holding a microphone close to their mouth. Wearing a vibrant red jacket with gold embroidery, the singer is speaking while smoke swirls around them, creating a dynamic and atmospheric scene."
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
     },
     {
       "id": 18,
       "type": "Note",
       "pos": [
-        -482.5826982631345,
-        4259.351800597642
+        239.73268482421932,
+        3814.0584339442544
       ],
       "size": [
-        559.515625,
-        202.671875
+        543.1021693615721,
+        187.39828851074208
       ],
       "flags": {},
-      "order": 3,
+      "order": 9,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -246,86 +482,51 @@
       "bgcolor": "#653"
     },
     {
-      "id": 15,
-      "type": "LoadAudio",
+      "id": 17,
+      "type": "Note",
       "pos": [
-        -1279.308641046396,
-        3436.7805917595424
+        812.110704844675,
+        3813.7163438127627
       ],
       "size": [
-        270,
-        151.453125
+        511.4774306384279,
+        188.5696042553709
       ],
       "flags": {},
-      "order": 4,
-      "mode": 2,
+      "order": 10,
+      "mode": 0,
       "inputs": [],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            17
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadAudio"
-      },
-      "widgets_values": [
-        "sing_man.WAV",
-        null,
-        null
-      ]
-    },
-    {
-      "id": 16,
-      "type": "SaveAudio",
-      "pos": [
-        -940.5087001284269,
-        3467.756562218528
-      ],
-      "size": [
-        270,
-        112
-      ],
-      "flags": {},
-      "order": 19,
-      "mode": 2,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 18
-        }
-      ],
       "outputs": [],
+      "title": "single",
       "properties": {},
       "widgets_values": [
-        "audio/ComfyUI"
-      ]
+        "A western man stands on stage under dramatic lighting, holding a microphone close to their mouth. Wearing a vibrant red jacket with gold embroidery, the singer is speaking while smoke swirls around them, creating a dynamic and atmospheric scene."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     },
     {
-      "id": 19,
+      "id": 23,
       "type": "LoadAudio",
       "pos": [
-        -536.1948856589651,
-        3839.271440023964
+        -522.4541586730217,
+        3187.337899997488
       ],
       "size": [
         270,
-        151.453125
+        179.421875
       ],
       "flags": {},
-      "order": 5,
-      "mode": 2,
+      "order": 11,
+      "mode": 0,
       "inputs": [],
       "outputs": [
         {
           "name": "AUDIO",
           "type": "AUDIO",
           "links": [
-            22
+            30,
+            32
           ]
         }
       ],
@@ -339,146 +540,44 @@
       ]
     },
     {
-      "id": 13,
-      "type": "LoadAudio",
+      "id": 22,
+      "type": "LongCat_Video_SM_Audio",
       "pos": [
-        -520.1028477226126,
-        4054.1885136612545
+        -193.11301143584473,
+        2998.64437812088
       ],
       "size": [
-        270,
-        151.453125
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 2,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            14
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadAudio"
-      },
-      "widgets_values": [
-        "ComfyUI_00004_.flac",
-        null,
-        null
-      ]
-    },
-    {
-      "id": 14,
-      "type": "TrimAudioDuration",
-      "pos": [
-        -200.96427362527413,
-        4080.4337245283837
-      ],
-      "size": [
-        270,
-        111.453125
-      ],
-      "flags": {},
-      "order": 15,
-      "mode": 2,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 14
-        }
-      ],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            28
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TrimAudioDuration"
-      },
-      "widgets_values": [
-        5,
-        10
-      ]
-    },
-    {
-      "id": 20,
-      "type": "TrimAudioDuration",
-      "pos": [
-        -247.67058808799393,
-        3847.7260747443647
-      ],
-      "size": [
-        270,
-        111.453125
+        375.54127001953134,
+        188.58220343322773
       ],
       "flags": {},
       "order": 14,
-      "mode": 2,
+      "mode": 0,
       "inputs": [
+        {
+          "name": "audio_encoder",
+          "type": "AUDIO_ENCODER",
+          "link": 45
+        },
         {
           "name": "audio",
           "type": "AUDIO",
-          "link": 22
-        }
-      ],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            27
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "TrimAudioDuration"
-      },
-      "widgets_values": [
-        5,
-        10
-      ]
-    },
-    {
-      "id": 21,
-      "type": "LongCat_Video_SM_Audio",
-      "pos": [
-        -298.1968153684498,
-        3495.2063811242024
-      ],
-      "size": [
-        356.375,
-        230.109375
-      ],
-      "flags": {},
-      "order": 20,
-      "mode": 2,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 27
+          "link": 30
         },
         {
           "name": "left_audio",
           "shape": 7,
           "type": "AUDIO",
-          "link": 28
+          "link": null
         }
       ],
       "outputs": [
         {
           "name": "au_cond",
           "type": "CONDITIONING",
-          "links": []
+          "links": [
+            31
+          ]
         }
       ],
       "properties": {
@@ -486,7 +585,7 @@
       },
       "widgets_values": [
         25,
-        2,
+        3,
         "para",
         ""
       ]
@@ -495,15 +594,15 @@
       "id": 2,
       "type": "LongCat_Video_SM_Sampler",
       "pos": [
-        688.3028505442599,
-        3226.2618350990106
+        680.5588579295136,
+        3256.2698166358773
       ],
       "size": [
         288.5,
         436.765625
       ],
       "flags": {},
-      "order": 21,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -551,292 +650,6 @@
         3,
         1
       ]
-    },
-    {
-      "id": 1,
-      "type": "LongCat_Video_SM_Model",
-      "pos": [
-        658.1404656886173,
-        2961.1658797268005
-      ],
-      "size": [
-        338.5,
-        210.078125
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "links": [
-            1
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LongCat_Video_SM_Model"
-      },
-      "widgets_values": [
-        "LongCat-Video-Avatar-1.5-int8.safetensors",
-        "none",
-        "LongCat-Video-Avatar-vae.safetensors",
-        "longcat-avatar-dmd_lora.safetensors"
-      ]
-    },
-    {
-      "id": 22,
-      "type": "LongCat_Video_SM_Audio",
-      "pos": [
-        -230.83786816844977,
-        3055.1901322259805
-      ],
-      "size": [
-        356.375,
-        230.109375
-      ],
-      "flags": {},
-      "order": 16,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "audio",
-          "type": "AUDIO",
-          "link": 30
-        },
-        {
-          "name": "left_audio",
-          "shape": 7,
-          "type": "AUDIO",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "au_cond",
-          "type": "CONDITIONING",
-          "links": [
-            31
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LongCat_Video_SM_Audio"
-      },
-      "widgets_values": [
-        25,
-        2,
-        "para",
-        ""
-      ]
-    },
-    {
-      "id": 25,
-      "type": "Note",
-      "pos": [
-        -1187.8684265885026,
-        3673.965833817273
-      ],
-      "size": [
-        559.5,
-        52
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "note",
-      "properties": {},
-      "widgets_values": [
-        "如果没有背景音乐，可以跳过分离人声这步"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 24,
-      "type": "Note",
-      "pos": [
-        102.58739661350121,
-        4254.3023980824855
-      ],
-      "size": [
-        301.8183213618165,
-        88
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 4,
-      "inputs": [],
-      "outputs": [],
-      "title": "note",
-      "properties": {},
-      "widgets_values": [
-        "audio type  是声音合成的模式，还未测试"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 23,
-      "type": "LoadAudio",
-      "pos": [
-        -526.943128446215,
-        3093.129623329746
-      ],
-      "size": [
-        270,
-        151.453125
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            30,
-            32
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LoadAudio"
-      },
-      "widgets_values": [
-        "ComfyUI_00005_.flac",
-        null,
-        null
-      ]
-    },
-    {
-      "id": 5,
-      "type": "LongCat_Video_SM_Encode",
-      "pos": [
-        249.52785751791677,
-        3241.1499346306337
-      ],
-      "size": [
-        419.34375,
-        394.0929903362494
-      ],
-      "flags": {},
-      "order": 17,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 7
-        }
-      ],
-      "outputs": [
-        {
-          "name": "te_cond",
-          "type": "CONDITIONING",
-          "links": [
-            4
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "LongCat_Video_SM_Encode"
-      },
-      "widgets_values": [
-        "Static camera, In a professional recording studio, two people stand facing each other, both wearing large headphones. They are speaking clearly into a large condenser microphone suspended between them. They looked at each other affectionately and occasionally shook their heads according to the rhythm. The soundproofed walls and visible recording equipment create an atmosphere focused on capturing high-quality audio as they interact and communicate.",
-        "Close-up, Bright tones, overexposed, static, blurred details, subtitles, style, works, paintings, images, static, overall gray, worst quality, low quality, JPEG compression residue, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, misshapen limbs, fused fingers, still picture, messy background, three legs, many people in the background, walking backwards."
-      ]
-    },
-    {
-      "id": 8,
-      "type": "CLIPLoader",
-      "pos": [
-        254.7139442536571,
-        2986.426921398281
-      ],
-      "size": [
-        364.55508626709,
-        168.19122500000003
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "CLIP",
-          "type": "CLIP",
-          "links": [
-            7
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "CLIPLoader"
-      },
-      "widgets_values": [
-        "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-        "wan",
-        "default"
-      ]
-    },
-    {
-      "id": 4,
-      "type": "SaveVideo",
-      "pos": [
-        1001.5599433508951,
-        3353.112340789923
-      ],
-      "size": [
-        306.25,
-        549.625
-      ],
-      "flags": {},
-      "order": 23,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "video",
-          "type": "VIDEO",
-          "link": 3
-        }
-      ],
-      "outputs": [],
-      "properties": {},
-      "widgets_values": [
-        "video/ComfyUI",
-        "auto",
-        "auto"
-      ]
-    },
-    {
-      "id": 26,
-      "type": "Note",
-      "pos": [
-        234.5389908890977,
-        2724.4358729710207
-      ],
-      "size": [
-        345.2591069786379,
-        152.4753072872163
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "note",
-      "properties": {},
-      "widgets_values": [
-        "1 、gguf的DMD lora目前未支持（反正我也没上传模型）\n2 、stage1只是单角色时有效\n3 、视频时长由num segments控制，为（93/25）时长的倍数\n4 、block num 小于36G的显存请设置block num 大于0\n"
-      ],
-      "color": "#322",
-      "bgcolor": "#533"
     }
   ],
   "links": [
@@ -889,75 +702,11 @@
       "CLIP"
     ],
     [
-      9,
-      9,
-      0,
-      10,
-      0,
-      "AUDIO"
-    ],
-    [
-      10,
-      10,
-      0,
-      11,
-      0,
-      "AUDIO"
-    ],
-    [
-      14,
-      13,
-      0,
-      14,
-      0,
-      "AUDIO"
-    ],
-    [
-      17,
-      15,
-      0,
-      10,
-      1,
-      "AUDIO"
-    ],
-    [
-      18,
-      10,
-      1,
-      16,
-      0,
-      "AUDIO"
-    ],
-    [
-      22,
-      19,
-      0,
-      20,
-      0,
-      "AUDIO"
-    ],
-    [
-      27,
-      20,
-      0,
-      21,
-      0,
-      "AUDIO"
-    ],
-    [
-      28,
-      14,
-      0,
-      21,
-      1,
-      "AUDIO"
-    ],
-    [
       30,
       23,
       0,
       22,
-      0,
+      1,
       "AUDIO"
     ],
     [
@@ -975,6 +724,38 @@
       3,
       1,
       "AUDIO"
+    ],
+    [
+      45,
+      27,
+      0,
+      22,
+      0,
+      "AUDIO_ENCODER"
+    ],
+    [
+      47,
+      35,
+      0,
+      36,
+      0,
+      "AUDIO_ENCODER"
+    ],
+    [
+      48,
+      15,
+      0,
+      36,
+      1,
+      "AUDIO"
+    ],
+    [
+      49,
+      36,
+      0,
+      16,
+      0,
+      "AUDIO"
     ]
   ],
   "groups": [
@@ -982,10 +763,10 @@
       "id": 1,
       "title": "daul or single",
       "bounding": [
-        240.9255308735557,
-        2903.4858772091006,
-        1097.8604703386677,
-        1018.9557228256758
+        233.18153825880955,
+        2933.4938587459674,
+        1096.7956378435506,
+        831.5509228256756
       ],
       "color": "#3f789e",
       "flags": {}
@@ -994,34 +775,22 @@
       "id": 2,
       "title": "人声分离",
       "bounding": [
-        -1286.6850870104474,
-        2900.563579969892,
-        705.979835475769,
-        704.766680084228
-      ],
-      "color": "#3f789e",
-      "flags": {}
-    },
-    {
-      "id": 3,
-      "title": "dual 双人",
-      "bounding": [
-        -542.9375931272351,
-        3405.198149337393,
-        708.3169850550048,
-        818.3867383338779
+        -1206.978482711904,
+        2929.740934060109,
+        656.381809774638,
+        432.79963067611925
       ],
       "color": "#3f789e",
       "flags": {}
     },
     {
       "id": 4,
-      "title": "single 单人",
+      "title": "single /dual 单人/双人",
       "bounding": [
-        -543.2920350802378,
-        2899.0630689162635,
-        709.7340392255003,
-        456.98820783187557
+        -532.9848890375133,
+        2927.4080719481403,
+        737.8556166565302,
+        466.1775000310031
       ],
       "color": "#3f789e",
       "flags": {}
@@ -1030,10 +799,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5131581182307067,
+      "scale": 0.5644739300537773,
       "offset": [
-        1748.6647862887014,
-        -2445.5764084706775
+        1478.44028883581,
+        -2627.7750144615543
       ]
     },
     "frontendVersion": "1.43.18"

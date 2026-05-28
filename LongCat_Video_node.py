@@ -8,7 +8,7 @@ import os
 from comfy_api.latest import  io
 import folder_paths
 from .node_utils import  clear_comfyui_cache,tensor2image,audio2path
-from .LongCat_Video.run_demo_avatar_single_audio_to_video import load_longcat_video_model,generate,get_audio_vocal,get_audio_emb
+from .LongCat_Video.run_demo_avatar_single_audio_to_video import load_longcat_video_model,generate,get_audio_vocal,get_audio_emb,load_audio_vocal
 from .LongCat_Video.run_demo_avatar_multi_audio_to_video import generate_multi
 device = torch.device(
     "cuda:0") if torch.cuda.is_available() else torch.device(
@@ -145,6 +145,7 @@ class LongCat_Video_SM_Audio(io.ComfyNode):
             display_name="LongCat_Video_SM_Audio",
             category="LongCat_Video",
             inputs=[
+                io.AudioEncoder.Input("audio_encoder"),
                 io.Audio.Input("audio"),
                 io.Int.Input("save_fps", default=25, min=8, max=1024, step=1),
                 io.Int.Input("num_segments", default=1, min=1, max=1024, step=1),
@@ -157,7 +158,7 @@ class LongCat_Video_SM_Audio(io.ComfyNode):
                 ],
         )
     @classmethod
-    def execute(cls, audio,save_fps,num_segments,audio_type,p_box,left_audio=None) -> io.NodeOutput: 
+    def execute(cls, audio_encoder,audio,save_fps,num_segments,audio_type,p_box,left_audio=None) -> io.NodeOutput: 
         if p_box:
             import ast
             # 将类似 "[100, 80, 800, 640], [1001, 80, 800, 640]" 的字符串转为嵌套列表
@@ -165,7 +166,7 @@ class LongCat_Video_SM_Audio(io.ComfyNode):
             assert isinstance(parsed_p_box, list) and len(parsed_p_box) >= 2 , "p_box must be a list of int ,and must lens >2"
         else:
             parsed_p_box = None
-        au_cond=get_audio_emb(weigths_longcat_current_path,audio,left_audio,audio_type,save_fps,num_segments,device,p_box=parsed_p_box)
+        au_cond=get_audio_emb(audio_encoder,audio,left_audio,audio_type,save_fps,num_segments,device,p_box=parsed_p_box)
         clear_comfyui_cache()
         return io.NodeOutput(au_cond)
     
@@ -177,17 +178,37 @@ class LongCat_Video_SM_Vocal(io.ComfyNode):
             display_name="LongCat_Video_SM_Vocal",
             category="LongCat_Video",
             inputs=[
+                io.AudioEncoder.Input("audio_encoder"),
                 io.Audio.Input("audio"),
-                io.Audio.Input("left_audio",optional=True),
             ],
             outputs=[
                 io.Audio.Output(display_name="audio"),
-                io.Audio.Output(display_name="left_audio"),
                 io.String.Output(display_name="audio_path"),
                 ],
         )
     @classmethod
-    def execute(cls, audio, left_audio=None) -> io.NodeOutput: 
-        left_audio_path=audio2path(left_audio) if left_audio is not None else None
-        audio_path,audio,left_audio=get_audio_vocal(weigths_longcat_current_path,audio2path(audio),left_audio_path,folder_paths.get_output_directory())
-        return io.NodeOutput(audio,left_audio,audio_path)
+    def execute(cls, audio_encoder,audio,) -> io.NodeOutput: 
+        audio_path,audio=get_audio_vocal(audio_encoder,audio2path(audio),folder_paths.get_output_directory())
+        return io.NodeOutput(audio,audio_path)
+    
+class LongCat_Video_SM_VocalModel(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="LongCat_Video_SM_VocalModel",
+            display_name="LongCat_Video_SM_VocalModel",
+            category="LongCat_Video",
+            inputs=[
+                io.Combo.Input(
+                    "audio_encoder_vocal",options=["none"]+[i for i in folder_paths.get_filename_list("longcat") if i.endswith(".onnx")],
+                ),
+            ],
+            outputs=[
+                io.AudioEncoder.Output(),
+                ],
+        )
+    @classmethod
+    def execute(cls, audio_encoder_vocal) -> io.NodeOutput: 
+        vocal_separator_path=folder_paths.get_full_path_or_raise("longcat", audio_encoder_vocal) if audio_encoder_vocal!="none" else None
+        audio_encoder=load_audio_vocal(vocal_separator_path,folder_paths.get_output_directory(),weigths_longcat_current_path)
+        return io.NodeOutput(audio_encoder)
