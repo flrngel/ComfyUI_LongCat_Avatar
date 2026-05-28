@@ -1,56 +1,11 @@
-from diffusers.quantizers.gguf.utils import dequantize_gguf_tensor
 
-from contextlib import contextmanager
-from .layer_streaming import SimpleLayerStreamingWrapper
-from collections.abc import Iterator
-from typing import TypeVar
 import gc
 import torch
-# from utils import apply_loras_gguf
-
-_M = TypeVar("_M", bound=torch.nn.Module)
-T = TypeVar("T")
-
-
 
 def cleanup_memory() -> None:
     gc.collect()
     torch.cuda.empty_cache()
     torch.cuda.synchronize()
-
-# LayerStreamingWrapper from https://github.com/Lightricks/LTX-2
-
-@contextmanager
-def _streaming_model(
-    model: _M,
-    layers_attr: str,
-    target_device: torch.device,
-    prefetch_count: int,
-) -> Iterator[_M]:
-    """Wrap *model* with :class:`LayerStreamingWrapper`, yield it, then tear down."""
-    wrapped = SimpleLayerStreamingWrapper(
-        model,
-        layers_attr=layers_attr,
-        target_device=target_device,
-        active_count=prefetch_count,
-    )
-    try:
-        yield wrapped  # type: ignore[misc]
-    finally:
-        wrapped.to("cpu")
-        cleanup_memory()
-        # Flush the host (pinned) memory cache so that freed pinned pages are
-        # returned to the OS.  Without this, sequential streaming models
-        # (e.g. text encoder then transformer) exhaust host memory because the
-        # CachingHostAllocator keeps freed blocks cached indefinitely.
-        torch.cuda.synchronize(device=target_device)
-        try:
-            if hasattr(torch._C, "_host_emptyCache"):
-                torch._C._host_emptyCache()
-        except Exception:
-            print("Host empty cache cleanup failed; ignoring.", exc_info=True)
-
-
 
 def set_gguf2meta_model(meta_model,model_state_dict,dtype,device,lora_sd=None):
     from diffusers import GGUFQuantizationConfig
@@ -153,6 +108,7 @@ def apply_loras_gguf(
     model_sd,
     lora_sd,
 ):
+    from diffusers.quantizers.gguf.utils import dequantize_gguf_tensor
     sd = {}
     for key, weight in model_sd.items():
         if weight is None:

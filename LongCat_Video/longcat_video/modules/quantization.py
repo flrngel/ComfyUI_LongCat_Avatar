@@ -6,7 +6,7 @@ from typing import Optional, Set
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from safetensors.torch import save_file, load_file
+from safetensors.torch import save_file, load_file as safe_load_file
 
 
 class QuantizedLinear(nn.Module):
@@ -233,17 +233,17 @@ def load_quantized_dit(checkpoint_dir: str, subfolder: str = "base_model_int8", 
         state_dict = {}
         for shard_file in sorted(shard_files):
             shard_path = os.path.join(quantized_dir, shard_file)
-            shard_dict = load_file(shard_path, device="cpu")
+            shard_dict = safe_load_file(shard_path, device="cpu")
             state_dict.update(shard_dict)
     else:
         # Single file fallback
         if single_file:
-            state_dict = load_file(single_file, device="cpu")
+            state_dict = safe_load_file(single_file, device="cpu")
         else:
             files = [f for f in os.listdir(quantized_dir) if f.endswith(".safetensors") and "index" not in f]
             state_dict = {}
             for f in sorted(files):
-                shard_dict = load_file(os.path.join(quantized_dir, f), device="cpu")
+                shard_dict = safe_load_file(os.path.join(quantized_dir, f), device="cpu")
                 state_dict.update(shard_dict)
 
     X=model.load_state_dict(state_dict, strict=True,assign=True) # Load weights and cast to bfloat16 for non-quantized params

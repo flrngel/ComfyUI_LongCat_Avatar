@@ -15,7 +15,7 @@ import torch
 from transformers import AutoTokenizer, UMT5EncoderModel
 from diffusers.utils import load_image
 
-from .longcat_video.pipeline_longcat_video_avatar import LongCatVideoAvatarPipeline,get_audio_embedding_whisper
+from .longcat_video.pipeline_longcat_video_avatar import LongCatVideoAvatarPipeline,get_audio_embedding_whisper,get_audio_embedding_whisper_
 from .longcat_video.modules.scheduling_flow_match_euler_discrete import FlowMatchEulerDiscreteScheduler
 from .longcat_video.modules.autoencoder_kl_wan import AutoencoderKLWan
 from .longcat_video.modules.avatar.longcat_video_dit_avatar import LongCatVideoAvatarTransformer3DModel
@@ -47,7 +47,7 @@ def extract_vocal_from_speech(source_path, target_path, vocal_separator, audio_o
         print("Audio separate failed. Using raw audio.")
         return None
         
-    default_vocal_path = audio_output_dir_temp / "vocals" / outputs[0]
+    default_vocal_path = Path(os.path.join(audio_output_dir_temp ,"vocals", f"{outputs[0]}"))
     default_vocal_path = default_vocal_path.resolve().as_posix()
     # cmd = f"mv '{default_vocal_path}' '{target_path}'"
     # os.system(cmd)    
@@ -178,7 +178,7 @@ def prepare_audio(audio, sample_rate=16000):
         sr = 16000
     return speech_array,sr
 
-def get_audio_emb(checkpoint_dir,audio,left_audio,audio_type,save_fps,num_segments,device,p_box,model_type='avatar-v1.5' ):
+def get_audio_emb(audio_encoder,audio,left_audio,audio_type,save_fps,num_segments,device,p_box,model_type='avatar-v1.5' ):
     num_frames=93
     num_cond_frames = 13
     audio_stride=1
@@ -198,23 +198,16 @@ def get_audio_emb(checkpoint_dir,audio,left_audio,audio_type,save_fps,num_segmen
         left_person_bbox=p_box[0]
         right_person_bbox=p_box[1]
         other_person_bbox = p_box[2] if len(p_box) > 2 else None
-        # left_person_bbox = p_box.get('person1', None)
-        # right_person_bbox = p_box.get('person2', None)
-        # other_person_bbox = p_box.get('others', None)
         use_background_silent_audio = other_person_bbox is not None and len(other_person_bbox) > 0
-    # audio embedding
-    # initialize audio models
-    audio_model_checkpoint_path = os.path.join(checkpoint_dir, 'whisper-large-v3')
-    audio_encoder = get_audio_encoder(audio_model_checkpoint_path, model_type).to(device)
-    audio_feature_extractor = get_audio_feature_extractor(audio_model_checkpoint_path, model_type)
+
     if left_speech_array is not None:
         left_speech_array_ext, right_speech_array_ext = audio_prepare_multi(left_speech_array,speech_array, generate_duration, sr=sr, audio_type=audio_type)
-        left_full_audio_emb = get_audio_embedding_whisper(audio_encoder, audio_feature_extractor, left_speech_array_ext, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
-        full_audio_emb = get_audio_embedding_whisper(audio_encoder, audio_feature_extractor, right_speech_array_ext, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+        left_full_audio_emb = get_audio_embedding_whisper_(audio_encoder, left_speech_array_ext, fps=save_fps*audio_stride, )
+        full_audio_emb = get_audio_embedding_whisper_(audio_encoder, right_speech_array_ext, fps=save_fps*audio_stride,)
         if torch.isnan(left_full_audio_emb).any() or torch.isnan(full_audio_emb).any():
             raise ValueError(f"broken audio embedding with nan values")
         if use_background_silent_audio:
-            back_full_audio_emb = get_audio_embedding_whisper(audio_encoder, audio_feature_extractor,np.zeros_like(left_speech_array_ext), fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+            back_full_audio_emb = get_audio_embedding_whisper_(audio_encoder,np.zeros_like(left_speech_array_ext), fps=save_fps*audio_stride, )
         assert left_full_audio_emb.shape == full_audio_emb.shape, f"Inconsistent audio embedding shape."
         if use_background_silent_audio:
             assert left_full_audio_emb.shape == back_full_audio_emb.shape, f"Inconsistent audio embedding shape between speaker and background."
@@ -223,19 +216,10 @@ def get_audio_emb(checkpoint_dir,audio,left_audio,audio_type,save_fps,num_segmen
         added_sample_nums = math.ceil((generate_duration - source_duraion) * sr)
         if added_sample_nums > 0:
             speech_array = np.append(speech_array, [0.]*added_sample_nums)
-        full_audio_emb = get_audio_embedding_whisper(audio_encoder, audio_feature_extractor, speech_array, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
-
+        full_audio_emb=get_audio_embedding_whisper_(audio_encoder, speech_array, fps=save_fps*audio_stride, ) #torch.Size([2142, 5, 1280])
     if torch.isnan(full_audio_emb).any():
         raise ValueError(f"broken audio embedding with nan values") 
 
-    # # prepare audio embedding for the first clip
-    # indices = torch.arange(2 * 2 + 1) - 2
-    # audio_start_idx = 0
-    # audio_end_idx = audio_start_idx + audio_stride * num_frames
-
-    # center_indices = torch.arange(audio_start_idx, audio_end_idx, audio_stride).unsqueeze(1) + indices.unsqueeze(0)
-    # center_indices = torch.clamp(center_indices, min=0, max=full_audio_emb.shape[0]-1)
-    # audio_emb = full_audio_emb[center_indices][None,...].to(device)
     au_cond={
         "full_audio_emb": full_audio_emb,
         "num_segments": num_segments,
@@ -250,8 +234,9 @@ def get_audio_emb(checkpoint_dir,audio,left_audio,audio_type,save_fps,num_segmen
     return au_cond
 
 
-def get_audio_vocal(checkpoint_dir,raw_speech_path,left_raw_audio_path,audio_output_dir_temp,):
-    vocal_separator_path = os.path.join(checkpoint_dir, 'vocal_separator/Kim_Vocal_2.onnx')
+def load_audio_vocal(vocal_separator_path,audio_output_dir_temp,checkpoint_dir):
+    if vocal_separator_path is None:
+        vocal_separator_path = os.path.join(checkpoint_dir, 'Kim_Vocal_2.onnx')
     os.makedirs(audio_output_dir_temp, exist_ok=True)
     audio_output_dir_temp = Path(audio_output_dir_temp)
     audio_separator_model_path = os.path.dirname(vocal_separator_path)
@@ -264,33 +249,23 @@ def get_audio_vocal(checkpoint_dir,raw_speech_path,left_raw_audio_path,audio_out
 
     vocal_separator.load_model(audio_separator_model_name)
     vocal_separator.onnx_execution_provider = ["CUDAExecutionProvider"]
+    return vocal_separator
 
+
+def get_audio_vocal(vocal_separator,raw_speech_path,audio_output_dir_temp,):
+    
     vocal_path=replace_to_vocal_suffix(raw_speech_path)
-    left_audio_path=replace_to_vocal_suffix(left_raw_audio_path) if left_raw_audio_path is not None else None
     os.makedirs(os.path.dirname(vocal_path), exist_ok=True)
 
-    temp_vocal_path = extract_vocal_from_speech(raw_speech_path,vocal_path , vocal_separator, audio_output_dir_temp)
-
-    temp_left_vocal_path,left_audio=None,None
-
-    if left_audio_path is not None:
-        os.makedirs(os.path.dirname(temp_vocal_path), exist_ok=True)
-        temp_left_vocal_path = extract_vocal_from_speech(left_raw_audio_path,left_audio_path , vocal_separator, audio_output_dir_temp)
-        
+    temp_vocal_path = extract_vocal_from_speech(raw_speech_path,vocal_path , vocal_separator, audio_output_dir_temp)       
     import librosa
     vocal_array, sr = librosa.load(temp_vocal_path, sr=16000)
-    if temp_left_vocal_path is not None:
-        left_vocal_array, sr = librosa.load(temp_left_vocal_path, sr=16000)
-        left_audio={
-            "waveform": torch.from_numpy(left_vocal_array).unsqueeze(0).unsqueeze(0),
-            "sample_rate": sr,
-        }
     #print("vocal_array.shape", vocal_array.shape)
     audio={
         "waveform": torch.from_numpy(vocal_array).unsqueeze(0).unsqueeze(0),
         "sample_rate": sr,
     }
-    return temp_vocal_path,audio,left_audio
+    return temp_vocal_path,audio
 
 def generate(pipe,condition,te_cond,device,seed,stage_1,cond_image,resolution,
              text_guidance_scale,audio_guidance_scale,num_inference_steps,ref_img_index,mask_frame_range,
@@ -434,7 +409,7 @@ def generate(pipe,condition,te_cond,device,seed,stage_1,cond_image,resolution,
             generator=generator,
             output_type='both',
             use_kv_cache=True,
-            offload_kv_cache=False,
+            offload_kv_cache=True,
             enhance_hf=True if not use_distill else False,
             audio_emb=audio_emb,
             ref_latent=ref_latent,

@@ -3,7 +3,8 @@
 
 Update
 ----
-* add node   
+* use comfyUI whisper-large-v3 audio_encoders，offload lora to cpu
+* 音频解码改成comfyUI内置单体模型方式，开启lora和cache的卸载，降低显存占用
 * 部署节点，目前单人和双人测试通过，部分参数未严谨测试，请自行测试，有bug可以提issues或反馈给我的B站或小红书smthem账号
 
 1.Installation  
@@ -33,11 +34,11 @@ links: [vae/vocal_separator/whisper-large-v3/lora](https://huggingface.co/meitua
 |     ├── LongCat_Avatar_1.5_vae.safetensors
 ├── ComfyUI/models/clip/
 |     ├── umt5_xxl_fp8_e4m3fn_scaled.safetensors
-├── ComfyUI/models/longcat/ # 懒得写节点
-|     ├── vocal_separator
-|         ├── 4 files
-|     ├── whisper-large-v3
-|         ├── 13 files ,model.safetensors,config.json,tokenizer.json,vocab.json.. #模型只下载model.safetensors即可,json要下
+├── ComfyUI/models/audio_encoders/
+|     ├── whisper-large-v3.safetensors # rename or not 
+├── ComfyUI/models/longcat/ 
+|     ├── Kim_Vocal_2.onnx # 配套config文件会自动下，可以下了先放进去
+
 ```
 
 4 Example
