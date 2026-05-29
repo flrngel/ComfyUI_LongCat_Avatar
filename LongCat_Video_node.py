@@ -166,6 +166,7 @@ class LongCat_Video_SM_Audio(io.ComfyNode):
             assert isinstance(parsed_p_box, list) and len(parsed_p_box) >= 2 , "p_box must be a list of int ,and must lens >2"
         else:
             parsed_p_box = None
+
         au_cond=get_audio_emb(audio_encoder,audio,left_audio,audio_type,save_fps,num_segments,device,p_box=parsed_p_box)
         clear_comfyui_cache()
         return io.NodeOutput(au_cond)
@@ -190,7 +191,32 @@ class LongCat_Video_SM_Vocal(io.ComfyNode):
     def execute(cls, audio_encoder,audio,) -> io.NodeOutput: 
         audio_path,audio=get_audio_vocal(audio_encoder,audio2path(audio),folder_paths.get_output_directory())
         return io.NodeOutput(audio,audio_path)
-    
+
+class LongCat_Video_SM_WhisperModel(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="LongCat_Video_SM_WhisperModel",
+            display_name="LongCat_Video_SM_WhisperModel",
+            category="LongCat_Video",
+            inputs=[
+                io.Combo.Input(
+                    "audio_encoder",options=folder_paths.get_filename_list("audio_encoders") ,
+                ),
+            ],
+            outputs=[
+                io.AudioEncoder.Output(),
+                ],
+        )
+    @classmethod
+    def execute(cls, audio_encoder) -> io.NodeOutput: 
+        a_checkpoint_path = folder_paths.get_full_path_or_raise("audio_encoders", audio_encoder)
+        from .LongCat_Video.longcat_video.audio_process import get_audio_encoder, get_audio_feature_extractor
+        audio_encoder = get_audio_encoder(a_checkpoint_path, 'avatar-v1.5',os.path.join(node_longcat_path, "LongCat_Video/whisper-large-v3"))
+        audio_feature_extractor = get_audio_feature_extractor(os.path.join(node_longcat_path, "LongCat_Video/whisper-large-v3"), 'avatar-v1.5')
+        audio_encoder={"audio_encoder":audio_encoder,"audio_feature_extractor":audio_feature_extractor}
+        return io.NodeOutput(audio_encoder)
+
 class LongCat_Video_SM_VocalModel(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -212,3 +238,4 @@ class LongCat_Video_SM_VocalModel(io.ComfyNode):
         vocal_separator_path=folder_paths.get_full_path_or_raise("longcat", audio_encoder_vocal) if audio_encoder_vocal!="none" else None
         audio_encoder=load_audio_vocal(vocal_separator_path,folder_paths.get_output_directory(),weigths_longcat_current_path)
         return io.NodeOutput(audio_encoder)
+    
