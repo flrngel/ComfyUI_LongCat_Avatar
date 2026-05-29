@@ -3,6 +3,7 @@
 
 Update
 ----
+* 新增whisper-large-v3 原生加载节点，总感觉对comfyUI的音频解码有问题，可能是错觉
 * use comfyUI whisper-large-v3 audio_encoders，offload lora to cpu
 * 音频解码改成comfyUI内置单体模型方式，开启lora和cache的卸载，降低显存占用
 * 部署节点，目前单人和双人测试通过，部分参数未严谨测试，请自行测试，有bug可以提issues或反馈给我的B站或小红书smthem账号
