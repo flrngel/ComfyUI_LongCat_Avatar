@@ -202,12 +202,20 @@ def get_audio_emb(audio_encoder,audio,left_audio,audio_type,save_fps,num_segment
 
     if left_speech_array is not None:
         left_speech_array_ext, right_speech_array_ext = audio_prepare_multi(left_speech_array,speech_array, generate_duration, sr=sr, audio_type=audio_type)
-        left_full_audio_emb = get_audio_embedding_whisper_(audio_encoder, left_speech_array_ext, fps=save_fps*audio_stride, )
-        full_audio_emb = get_audio_embedding_whisper_(audio_encoder, right_speech_array_ext, fps=save_fps*audio_stride,)
+        if isinstance(audio_encoder,dict):
+            left_full_audio_emb = get_audio_embedding_whisper(audio_encoder["audio_encoder"].to(device), audio_encoder["audio_feature_extractor"], left_speech_array_ext, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+            full_audio_emb = get_audio_embedding_whisper(audio_encoder["audio_encoder"].to(device), audio_encoder["audio_feature_extractor"], right_speech_array_ext, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+        else:
+            left_full_audio_emb = get_audio_embedding_whisper_(audio_encoder, left_speech_array_ext, fps=save_fps*audio_stride, )
+            full_audio_emb = get_audio_embedding_whisper_(audio_encoder, right_speech_array_ext, fps=save_fps*audio_stride,)
+        
         if torch.isnan(left_full_audio_emb).any() or torch.isnan(full_audio_emb).any():
             raise ValueError(f"broken audio embedding with nan values")
         if use_background_silent_audio:
-            back_full_audio_emb = get_audio_embedding_whisper_(audio_encoder,np.zeros_like(left_speech_array_ext), fps=save_fps*audio_stride, )
+            if isinstance(audio_encoder,dict):
+                back_full_audio_emb = get_audio_embedding_whisper(audio_encoder["audio_encoder"].to(device), audio_encoder["audio_feature_extractor"], np.zeros_like(left_speech_array_ext), fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+            else:
+                back_full_audio_emb = get_audio_embedding_whisper_(audio_encoder,np.zeros_like(left_speech_array_ext), fps=save_fps*audio_stride, )
         assert left_full_audio_emb.shape == full_audio_emb.shape, f"Inconsistent audio embedding shape."
         if use_background_silent_audio:
             assert left_full_audio_emb.shape == back_full_audio_emb.shape, f"Inconsistent audio embedding shape between speaker and background."
@@ -216,10 +224,15 @@ def get_audio_emb(audio_encoder,audio,left_audio,audio_type,save_fps,num_segment
         added_sample_nums = math.ceil((generate_duration - source_duraion) * sr)
         if added_sample_nums > 0:
             speech_array = np.append(speech_array, [0.]*added_sample_nums)
-        full_audio_emb=get_audio_embedding_whisper_(audio_encoder, speech_array, fps=save_fps*audio_stride, ) #torch.Size([2142, 5, 1280])
+        if isinstance(audio_encoder,dict):
+            full_audio_emb = get_audio_embedding_whisper(audio_encoder["audio_encoder"].to(device), audio_encoder["audio_feature_extractor"], speech_array, fps=save_fps*audio_stride, device="cuda" if torch.cuda.is_available() else "cpu", sample_rate=sr)
+        else:
+            full_audio_emb=get_audio_embedding_whisper_(audio_encoder, speech_array, fps=save_fps*audio_stride, ) #torch.Size([2142, 5, 1280])
     if torch.isnan(full_audio_emb).any():
         raise ValueError(f"broken audio embedding with nan values") 
-
+    if isinstance(audio_encoder,dict):
+        audio_encoder["audio_encoder"].to("cpu")
+        del audio_encoder
     au_cond={
         "full_audio_emb": full_audio_emb,
         "num_segments": num_segments,
