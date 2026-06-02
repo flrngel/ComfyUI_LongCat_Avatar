@@ -143,7 +143,7 @@ def generate_multi(pipe,condition,te_cond,device,seed,cond_image,resolution,
     # assert left_raw_speech_path is not None or right_raw_speech_path is not None, f"At least one speech is required."
     # left_person_bbox, right_person_bbox = None, None
     
-    num_frames=93 # 滑动窗口13,硬编码为93确保滑动窗口覆盖整个视频
+    num_frames=93 # sliding window 13, hardcoded to 93 to ensure the sliding window covers the entire video
     num_cond_frames=13
     audio_stride=condition['audio_stride']
     right_full_audio_emb=condition['full_audio_emb']

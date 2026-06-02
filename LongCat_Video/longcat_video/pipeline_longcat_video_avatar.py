@@ -38,22 +38,22 @@ def torch_gc():
 
 @torch.no_grad()
 def get_audio_embedding_whisper_(audio_encoder,speech_array, fps=25, device='cpu', sample_rate=16000):
-    """使用 Whisper encoder 提取音频特征。
+    """Extract audio features using the Whisper encoder.
     Args:
-        speech_array: 原始音频波形 (numpy array, 单声道, sample_rate=16000)
-        fps:          目标视频帧率
-        device:       推理设备
-        sample_rate:  音频采样率
+        speech_array: raw audio waveform (numpy array, mono, sample_rate=16000)
+        fps:          target video frame rate
+        device:       inference device
+        sample_rate:  audio sample rate
     Returns:
-        audio_emb: [T, 5, D]，T = int(audio_duration * fps)
+        audio_emb: [T, 5, D], T = int(audio_duration * fps)
     """
     def linear_interpolation_fps(features, input_fps, output_fps, output_len=None):
-        """将音频特征从 input_fps 插值到 output_fps。
+        """Interpolate audio features from input_fps to output_fps.
         Args:
             features:   [B, T, D]
-            input_fps:  源帧率
-            output_fps: 目标帧率
-            output_len: 若指定则直接用该长度，否则按帧率比换算
+            input_fps:  source frame rate
+            output_fps: target frame rate
+            output_len: if specified, use this length directly; otherwise compute from the fps ratio
         Returns:
             [B, output_len, D]
         """
@@ -62,10 +62,10 @@ def get_audio_embedding_whisper_(audio_encoder,speech_array, fps=25, device='cpu
             output_len = int(features.shape[2] / float(input_fps) * output_fps)
         output_features = F.interpolate(features, size=output_len, align_corners=True, mode='linear')
         return output_features.transpose(1, 2)
-    # ---- 常量 ----
-    MEL_CHUNK      = 750 * 640   # feature extractor 滑窗大小（样本数）
-    ENC_CHUNK      = 3000        # encoder 滑窗大小（mel 帧数）
-    ENC_FPS        = 50          # encoder 输出帧率
+    # ---- Constants ----
+    MEL_CHUNK      = 750 * 640   # feature extractor sliding window size (number of samples)
+    ENC_CHUNK      = 3000        # encoder sliding window size (mel frames)
+    ENC_FPS        = 50          # encoder output frame rate
 
        
     audio_duration = len(speech_array) / sample_rate
@@ -77,7 +77,7 @@ def get_audio_embedding_whisper_(audio_encoder,speech_array, fps=25, device='cpu
             return audio_array
         normalized_audio = pyln.normalize.loudness(audio_array, loudness, lufs)
         return normalized_audio
-    # ---- 音频预处理 ----
+    # ---- Audio preprocessing ----
     speech_array = _loudness_norm(speech_array, sample_rate)
 
 
@@ -88,7 +88,7 @@ def get_audio_embedding_whisper_(audio_encoder,speech_array, fps=25, device='cpu
  
     audio_prompts = audio_emb[:, :audio_len * 2] 
 
-    # ---- 按层分组 + 插值到目标帧数 ----
+    # ---- Group by layer + interpolate to target frame count ----
     feat0 = linear_interpolation_fps(audio_prompts[:, :,  0: 8].mean(dim=2), ENC_FPS, fps, video_length)
     feat1 = linear_interpolation_fps(audio_prompts[:, :,  8:16].mean(dim=2), ENC_FPS, fps, video_length)
     feat2 = linear_interpolation_fps(audio_prompts[:, :, 16:24].mean(dim=2), ENC_FPS, fps, video_length)
@@ -100,22 +100,22 @@ def get_audio_embedding_whisper_(audio_encoder,speech_array, fps=25, device='cpu
 
 @torch.no_grad()
 def get_audio_embedding_whisper(audio_encoder,audio_feature_extractor,speech_array, fps=25, device='cpu', sample_rate=16000):
-    """使用 Whisper encoder 提取音频特征。
+    """Extract audio features using the Whisper encoder.
     Args:
-        speech_array: 原始音频波形 (numpy array, 单声道, sample_rate=16000)
-        fps:          目标视频帧率
-        device:       推理设备
-        sample_rate:  音频采样率
+        speech_array: raw audio waveform (numpy array, mono, sample_rate=16000)
+        fps:          target video frame rate
+        device:       inference device
+        sample_rate:  audio sample rate
     Returns:
-        audio_emb: [T, 5, D]，T = int(audio_duration * fps)
+        audio_emb: [T, 5, D], T = int(audio_duration * fps)
     """
     def linear_interpolation_fps(features, input_fps, output_fps, output_len=None):
-        """将音频特征从 input_fps 插值到 output_fps。
+        """Interpolate audio features from input_fps to output_fps.
         Args:
             features:   [B, T, D]
-            input_fps:  源帧率
-            output_fps: 目标帧率
-            output_len: 若指定则直接用该长度，否则按帧率比换算
+            input_fps:  source frame rate
+            output_fps: target frame rate
+            output_len: if specified, use this length directly; otherwise compute from the fps ratio
         Returns:
             [B, output_len, D]
         """
@@ -124,12 +124,12 @@ def get_audio_embedding_whisper(audio_encoder,audio_feature_extractor,speech_arr
             output_len = int(features.shape[2] / float(input_fps) * output_fps)
         output_features = F.interpolate(features, size=output_len, align_corners=True, mode='linear')
         return output_features.transpose(1, 2)
-    # ---- 常量 ----
-    MEL_CHUNK      = 750 * 640   # feature extractor 滑窗大小（样本数）
-    ENC_CHUNK      = 3000        # encoder 滑窗大小（mel 帧数）
-    ENC_FPS        = 50          # encoder 输出帧率
+    # ---- Constants ----
+    MEL_CHUNK      = 750 * 640   # feature extractor sliding window size (number of samples)
+    ENC_CHUNK      = 3000        # encoder sliding window size (mel frames)
+    ENC_FPS        = 50          # encoder output frame rate
 
-    # ---- 时长 / 帧数 ----
+    # ---- Duration / frame count ----
     audio_duration = len(speech_array) / sample_rate
     video_length   = int(audio_duration * fps)
     def _loudness_norm(audio_array, sr=16000, lufs=-23, threshold=100):
@@ -139,7 +139,7 @@ def get_audio_embedding_whisper(audio_encoder,audio_feature_extractor,speech_arr
             return audio_array
         normalized_audio = pyln.normalize.loudness(audio_array, loudness, lufs)
         return normalized_audio
-    # ---- 音频预处理 ----
+    # ---- Audio preprocessing ----
     speech_array = _loudness_norm(speech_array, sample_rate)
     
     # ---- Whisper feature extractor：wav → mel spectrogram ----
@@ -165,10 +165,10 @@ def get_audio_embedding_whisper(audio_encoder,audio_feature_extractor,speech_arr
     
     audio_prompts = torch.cat(enc_chunks, dim=1)         # [1, T_enc_total, n_layers, D]
    
-    audio_prompts = audio_prompts[:, :video_length * 2]  # 截取有效帧
+    audio_prompts = audio_prompts[:, :video_length * 2]  # trim to valid frames
    
 
-    # ---- 按层分组 + 插值到目标帧数 ----
+    # ---- Group by layer + interpolate to target frame count ----
     feat0 = linear_interpolation_fps(audio_prompts[:, :,  0: 8].mean(dim=2), ENC_FPS, fps, video_length)
     feat1 = linear_interpolation_fps(audio_prompts[:, :,  8:16].mean(dim=2), ENC_FPS, fps, video_length)
     feat2 = linear_interpolation_fps(audio_prompts[:, :, 16:24].mean(dim=2), ENC_FPS, fps, video_length)
@@ -722,22 +722,22 @@ class LongCatVideoAvatarPipeline:
 
     @torch.no_grad()
     def get_audio_embedding_whisper(self, speech_array, fps=25, device='cpu', sample_rate=16000):
-        """使用 Whisper encoder 提取音频特征。
+        """Extract audio features using the Whisper encoder.
         Args:
-            speech_array: 原始音频波形 (numpy array, 单声道, sample_rate=16000)
-            fps:          目标视频帧率
-            device:       推理设备
-            sample_rate:  音频采样率
+            speech_array: raw audio waveform (numpy array, mono, sample_rate=16000)
+            fps:          target video frame rate
+            device:       inference device
+            sample_rate:  audio sample rate
         Returns:
-            audio_emb: [T, 5, D]，T = int(audio_duration * fps)
+            audio_emb: [T, 5, D], T = int(audio_duration * fps)
         """
         def linear_interpolation_fps(features, input_fps, output_fps, output_len=None):
-            """将音频特征从 input_fps 插值到 output_fps。
+            """Interpolate audio features from input_fps to output_fps.
             Args:
                 features:   [B, T, D]
-                input_fps:  源帧率
-                output_fps: 目标帧率
-                output_len: 若指定则直接用该长度，否则按帧率比换算
+                input_fps:  source frame rate
+                output_fps: target frame rate
+                output_len: if specified, use this length directly; otherwise compute from the fps ratio
             Returns:
                 [B, output_len, D]
             """
@@ -746,16 +746,16 @@ class LongCatVideoAvatarPipeline:
                 output_len = int(features.shape[2] / float(input_fps) * output_fps)
             output_features = F.interpolate(features, size=output_len, align_corners=True, mode='linear')
             return output_features.transpose(1, 2)
-        # ---- 常量 ----
-        MEL_CHUNK      = 750 * 640   # feature extractor 滑窗大小（样本数）
-        ENC_CHUNK      = 3000        # encoder 滑窗大小（mel 帧数）
-        ENC_FPS        = 50          # encoder 输出帧率
+        # ---- Constants ----
+        MEL_CHUNK      = 750 * 640   # feature extractor sliding window size (number of samples)
+        ENC_CHUNK      = 3000        # encoder sliding window size (mel frames)
+        ENC_FPS        = 50          # encoder output frame rate
 
-        # ---- 时长 / 帧数 ----
+        # ---- Duration / frame count ----
         audio_duration = len(speech_array) / sample_rate
         video_length   = int(audio_duration * fps)
 
-        # ---- 音频预处理 ----
+        # ---- Audio preprocessing ----
         speech_array = self._loudness_norm(speech_array, sample_rate)
 
         # ---- Whisper feature extractor：wav → mel spectrogram ----
@@ -779,9 +779,9 @@ class LongCatVideoAvatarPipeline:
             ).hidden_states                           # tuple: (n_layers+1,) x [1, T_enc, D]
             enc_chunks.append(torch.stack(chunk_hs, dim=2))  # [1, T_enc, n_layers, D]
         audio_prompts = torch.cat(enc_chunks, dim=1)         # [1, T_enc_total, n_layers, D]
-        audio_prompts = audio_prompts[:, :video_length * 2]  # 截取有效帧
+        audio_prompts = audio_prompts[:, :video_length * 2]  # trim to valid frames
 
-        # ---- 按层分组 + 插值到目标帧数 ----
+        # ---- Group by layer + interpolate to target frame count ----
         feat0 = linear_interpolation_fps(audio_prompts[:, :,  0: 8].mean(dim=2), ENC_FPS, fps, video_length)
         feat1 = linear_interpolation_fps(audio_prompts[:, :,  8:16].mean(dim=2), ENC_FPS, fps, video_length)
         feat2 = linear_interpolation_fps(audio_prompts[:, :, 16:24].mean(dim=2), ENC_FPS, fps, video_length)
