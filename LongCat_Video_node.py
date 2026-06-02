@@ -161,7 +161,7 @@ class LongCat_Video_SM_Audio(io.ComfyNode):
     def execute(cls, audio_encoder,audio,save_fps,num_segments,audio_type,p_box,left_audio=None) -> io.NodeOutput: 
         if p_box:
             import ast
-            # 将类似 "[100, 80, 800, 640], [1001, 80, 800, 640]" 的字符串转为嵌套列表
+            # Convert a string like "[100, 80, 800, 640], [1001, 80, 800, 640]" into a nested list
             parsed_p_box = ast.literal_eval(f"[{p_box}]")
             assert isinstance(parsed_p_box, list) and len(parsed_p_box) >= 2 , "p_box must be a list of int ,and must lens >2"
         else:

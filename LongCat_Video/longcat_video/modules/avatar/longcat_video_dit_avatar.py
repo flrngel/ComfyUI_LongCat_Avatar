@@ -333,28 +333,28 @@ class LongCatVideoAvatarTransformer3DModel(
             weight_dtype = x.dtype
             target_device = x.device
             
-            # 执行原始的模块前向传播（不受LoRA设备影响）
+            # Execute the original module forward pass (unaffected by the LoRA device)
             org_output = module.org_forward(x, *args, **kwargs)
             
             total_lora_output = 0
             for lora in loras:
                 if lora.use_lora:
-                    # 1. 推理前：将 LoRA 权重动态加载到输入张量所在的 CUDA 设备
+                    # 1. Before inference: dynamically load LoRA weights to the CUDA device of the input tensor
                     lora.lora_down.to(target_device, dtype=weight_dtype, non_blocking=True)
                     lora.lora_up.to(target_device, dtype=weight_dtype, non_blocking=True)
                     
-                    # 2. 执行 LoRA 计算
+                    # 2. Perform LoRA computation
                     lx = lora.lora_down(x)
                     lx = lora.lora_up(lx)
                     lora_output = lx * lora.multiplier * lora.alpha_scale
                     
                     total_lora_output += lora_output
                     
-                    # 3. 推理后：立即将 LoRA 权重卸载回 CPU，释放显存
+                    # 3. After inference: immediately offload LoRA weights back to CPU to free VRAM
                     lora.lora_down.to("cpu", non_blocking=True)
                     lora.lora_up.to("cpu", non_blocking=True)
             
-            # 累加 LoRA 输出并转换回原始数据类型
+            # Accumulate LoRA output and cast back to the original data type
             total_lora_output = total_lora_output.to(weight_dtype)
             
             return org_output + total_lora_output
@@ -483,7 +483,7 @@ class LongCatVideoAvatarTransformer3DModel(
             audio_hidden_states = rearrange(audio_hidden_states, "b t n c -> (b t) n c")
         
         # convert ref_target_masks to token_ref_target_masks
-        # 计算target mask 时会把ref image token 进行 gather，因此这里不需要CP
+        # When computing the target mask, ref image tokens are gathered, so CP is not needed here
         token_ref_target_masks = None
         if ref_target_masks is not None:
             ref_target_masks = ref_target_masks.unsqueeze(0).to(torch.float32) # [1, B, H, W]; cast for interpolation

@@ -45,12 +45,12 @@ def cleanup_memory() -> None:
 # LayerStreamingWrapper from https://github.com/Lightricks/LTX-2
 
 class SimpleLayerStreamingWrapper_Dual(nn.Module):
-    """简化版层流式处理包装器，支持多模块卸载"""
+    """Simplified layer streaming wrapper with support for multi-module offloading."""
     
     def __init__(
         self,
         model: nn.Module,
-        layers_attrs: list[str],  # 修改为列表，支持多个模块路径
+        layers_attrs: list[str],  # changed to a list to support multiple module paths
         target_device: torch.device,
         active_count: int = 1,
     ) -> None:
@@ -60,7 +60,7 @@ class SimpleLayerStreamingWrapper_Dual(nn.Module):
         self._target_device = target_device
         self._active_count = active_count
         
-        # 解析并存储所有需要卸载的模块
+        # Resolve and store all modules that need to be offloaded
         self._layer_groups: list[nn.ModuleList] = []
         self._stores: list[_SimpleLayerStore] = []
         
@@ -69,16 +69,16 @@ class SimpleLayerStreamingWrapper_Dual(nn.Module):
             self._layer_groups.append(layers)
             self._stores.append(_SimpleLayerStore(layers, self._target_device))
         
-        # 将非层参数移到GPU
+        # Move non-layer parameters to GPU
         self._move_non_layer_params_to_gpu()
         
-        # 为所有模块组注册钩子
+        # Register hooks for all module groups
         self._register_simple_hooks()
     
     def _move_non_layer_params_to_gpu(self) -> None:
-        """移动非层参数到GPU，排除所有需要流式卸载的模块参数"""
+        """Move non-layer parameters to GPU, excluding all module parameters subject to streaming offload."""
         layer_tensor_ids = set()
-        # 收集所有卸载模块的参数 ID
+        # Collect parameter IDs for all modules to be offloaded
         for layers in self._layer_groups:
             for layer in layers:
                 for t in itertools.chain(layer.parameters(), layer.buffers()):
@@ -94,46 +94,46 @@ class SimpleLayerStreamingWrapper_Dual(nn.Module):
         return self._model(*args, **kwargs)
     
     def __getattr__(self, name: str) -> Any:
-        """代理属性访问到原始模型"""
+        """Proxy attribute access to the underlying model."""
         try:
-            # 首先尝试从包装器自身获取属性
+            # First try to get the attribute from the wrapper itself
             return super().__getattr__(name)
         except AttributeError:
-            # 如果失败，则从原始模型获取
+            # If that fails, get it from the underlying model
             return getattr(self._model, name)
     
     def _register_simple_hooks(self) -> None:
-        """为所有模块组注册简单的加载/释放钩子"""
-        # 遍历每一个模块组及其对应的 Store
+        """Register simple load/unload hooks for all module groups."""
+        # Iterate over each module group and its corresponding store
         for layers, store in zip(self._layer_groups, self._stores):
             idx_map = {id(layer): idx for idx, layer in enumerate(layers)}
             
             def _pre_hook(module: nn.Module, input, *, idx: int, s: _SimpleLayerStore):
-                # 加载当前层到GPU
+                # Load the current layer to GPU
                 s.load_layer_to_gpu(idx, module)
-                # 记录流，防止内存被提前回收
+                # Record the stream to prevent memory from being reclaimed prematurely
                 for param in itertools.chain(module.parameters(), module.buffers()):
                     param.data.record_stream(torch.cuda.current_stream(self._target_device))
             
             def _post_hook(module: nn.Module, input, output, *, idx: int, s: _SimpleLayerStore):
-                # 处理完后立即将层移回CPU
+                # Immediately move the layer back to CPU after processing
                 s.unload_layer_from_gpu(idx, module)
             
             for layer in layers:
                 idx = idx_map[id(layer)]
-                # 使用 functools.partial 将对应的 store 实例传入钩子
+                # Use functools.partial to pass the corresponding store instance to the hook
                 pre_hook = layer.register_forward_pre_hook(functools.partial(_pre_hook, idx=idx, s=store))
                 post_hook = layer.register_forward_hook(functools.partial(_post_hook, idx=idx, s=store))
 
 @contextmanager
 def _streaming_model(
     model: _M,
-    layers_attr,  # 允许接收 str 或 list[str]
+    layers_attr,  # accepts str or list[str]
     target_device: torch.device,
     prefetch_count: int,
 ) -> Iterator[_M]:
     """Wrap *model* with :class:`LayerStreamingWrapper`, yield it, then tear down."""
-    # 根据传入的 layers_attr 类型自动路由到对应的 Wrapper
+    # Automatically route to the appropriate wrapper based on the type of layers_attr
     if isinstance(layers_attr, list):
         wrapped = SimpleLayerStreamingWrapper_Dual(
             model,
@@ -206,42 +206,42 @@ def _resolve_attr(module: nn.Module, dotted_path: str) -> nn.ModuleList:
 # edit from LayerStreamingWrapper from https://github.com/Lightricks/LTX-2
 
 class _SimpleLayerStore:
-    """简化版层存储，支持按需加载和立即释放"""
+    """Simplified layer store with on-demand loading and immediate release."""
     
     def __init__(self, layers: nn.ModuleList, target_device: torch.device) -> None:
         self.target_device = target_device
         self.num_layers = len(layers)
         
-        # 保留CPU端的原始参数引用
+        # Keep a reference to the original parameters on the CPU side
         self._cpu_params: list[dict[str, torch.Tensor]] = []
         for layer in layers:
             cpu_copy = {}
             for name, tensor in itertools.chain(layer.named_parameters(), layer.named_buffers()):
-                cpu_copy[name] = tensor.data.cpu()  # 保留在CPU上
+                cpu_copy[name] = tensor.data.cpu()  # kept on CPU
             self._cpu_params.append(cpu_copy)
     
     def load_layer_to_gpu(self, idx: int, layer: nn.Module) -> None:
-        """将指定层加载到GPU"""
+        """Load the specified layer to GPU."""
         for name, param in itertools.chain(layer.named_parameters(), layer.named_buffers()):
             if name in self._cpu_params[idx]:
                 param.data = self._cpu_params[idx][name].to(self.target_device)
     
     def unload_layer_from_gpu(self, idx: int, layer: nn.Module) -> None:
-        """将指定层从GPU卸载回CPU"""
+        """Unload the specified layer from GPU back to CPU."""
         for name, param in itertools.chain(layer.named_parameters(), layer.named_buffers()):
             if name in self._cpu_params[idx]:
-                param.data = self._cpu_params[idx][name]  # 恢复为CPU副本
+                param.data = self._cpu_params[idx][name]  # restore to CPU copy
 
 
 class SimpleLayerStreamingWrapper(nn.Module):
-    """简化版层流式处理包装器"""
+    """Simplified layer streaming wrapper."""
     
     def __init__(
         self,
         model: nn.Module,
         layers_attr: str,
         target_device: torch.device,
-        active_count: int = 1,  # 同时激活的层数量
+        active_count: int = 1,  # number of simultaneously active layers
     ) -> None:
         super().__init__()
         self._model = model
@@ -250,14 +250,14 @@ class SimpleLayerStreamingWrapper(nn.Module):
         self._active_count = active_count
         self._store = _SimpleLayerStore(self._layers, self._target_device)
         
-        # 将非层参数移到GPU
+        # Move non-layer parameters to GPU
         self._move_non_layer_params_to_gpu()
         
-        # 注册钩子
+        # Register hooks
         self._register_simple_hooks()
     
     def _move_non_layer_params_to_gpu(self) -> None:
-        """移动非层参数到GPU"""
+        """Move non-layer parameters to GPU."""
         layer_tensor_ids = set()
         for layer in self._layers:
             for t in itertools.chain(layer.parameters(), layer.buffers()):
@@ -271,18 +271,18 @@ class SimpleLayerStreamingWrapper(nn.Module):
                 b.data = b.data.to(self._target_device)
     
     def _register_simple_hooks(self) -> None:
-        """注册简单的加载/释放钩子"""
+        """Register simple load/unload hooks."""
         idx_map = {id(layer): idx for idx, layer in enumerate(self._layers)}
         
         def _pre_hook(module: nn.Module, input, *, idx: int):
-            # 加载当前层到GPU
+            # Load the current layer to GPU
             self._store.load_layer_to_gpu(idx, module)
-            # 记录流，防止内存被提前回收
+            # Record the stream to prevent memory from being reclaimed prematurely
             for param in itertools.chain(module.parameters(), module.buffers()):
                 param.data.record_stream(torch.cuda.current_stream(self._target_device))
         
         def _post_hook(module: nn.Module, input, output, *, idx: int):
-            # 处理完后立即将层移回CPU
+            # Immediately move the layer back to CPU after processing
             self._store.unload_layer_from_gpu(idx, module)
         
         for layer in self._layers:
@@ -294,12 +294,12 @@ class SimpleLayerStreamingWrapper(nn.Module):
         return self._model(*args, **kwargs)
     
     def __getattr__(self, name: str) -> Any:
-        """代理属性访问到原始模型"""
+        """Proxy attribute access to the underlying model."""
         try:
-            # 首先尝试从包装器自身获取属性
+            # First try to get the attribute from the wrapper itself
             return super().__getattr__(name)
         except AttributeError:
-            # 如果失败，则从原始模型获取
+            # If that fails, get it from the underlying model
             return getattr(self._model, name)
     
 

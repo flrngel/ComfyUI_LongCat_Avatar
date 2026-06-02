@@ -19,8 +19,8 @@ def audio2path(audio,):
     waveform = audio["waveform"].squeeze(0)
     waveform_np = waveform.cpu().numpy() if hasattr(waveform, 'cpu') else waveform.numpy()
     
-    # 3. 格式转换：torchaudio 格式为 (channels, samples)，soundfile 需要 (samples, channels)
-    # 如果是单声道音频 (1, samples)，转置后变成 (samples, 1)，符合 soundfile 的单声道要求
+    # 3. Format conversion: torchaudio format is (channels, samples), soundfile needs (samples, channels)
+    # For mono audio (1, samples), after transposing it becomes (samples, 1), meeting soundfile's mono requirement
     if waveform_np.ndim == 2:
         waveform_np = waveform_np.T
         

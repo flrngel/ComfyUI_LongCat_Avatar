@@ -283,7 +283,7 @@ def get_audio_vocal(vocal_separator,raw_speech_path,audio_output_dir_temp,):
 def generate(pipe,condition,te_cond,device,seed,stage_1,cond_image,resolution,
              text_guidance_scale,audio_guidance_scale,num_inference_steps,ref_img_index,mask_frame_range,
              use_distill,model_type='avatar-v1.5'):
-    num_frames=93 # 滑动窗口13,硬编码为93确保滑动窗口覆盖整个视频
+    num_frames=93 # sliding window 13, hardcoded to 93 to ensure the sliding window covers the entire video
     num_cond_frames=13
     audio_stride=condition['audio_stride']
     full_audio_emb=condition['full_audio_emb']
